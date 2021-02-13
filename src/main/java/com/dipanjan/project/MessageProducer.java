@@ -1,6 +1,8 @@
 package com.dipanjan.project;
 
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -9,31 +11,40 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.Metric;
+import org.apache.kafka.common.MetricName;
 import org.apache.kafka.common.serialization.StringSerializer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MessageProducer {
+public class MessageProducer implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(MessageProducer.class);
+    private final String msgCount;
+    private final KafkaProducer kProducer;
+    private final Properties kProducerProperties;
 
-    public static void produceMessages(Optional<String> numberOfMessages) {
+    public MessageProducer(Optional<String> msgCount) {
+        this.msgCount = msgCount.get().isEmpty() ? MessageProducerConfig.getDefaultMsgCount(): msgCount.get();
+        this.kProducerProperties = getProducerProperties();
+        // kafka producer instance
+        kProducer = new KafkaProducer<String, String>(kProducerProperties);
+    }
 
-        String msgCount =
-                numberOfMessages.get().isEmpty() ? MessageProducerConfig.getDefaultMsgCount() : numberOfMessages.get();
-
-        logger.info("The message count from user is " + msgCount);
-
-        // properties to connect to Kafka
+    private Properties getProducerProperties()
+    {
         Properties properties = new Properties();
         properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, MessageProducerConfig.getBootStrapServer());
         properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 
-        // kafka producer instance
-        KafkaProducer<String, String> kProducer = new KafkaProducer<String, String>(properties);
+        return properties;
+    }
 
-        // records to be sent - try with one record and see in topic
+    @Override
+    public void run() {
+        // records to be sent
         for (int loopCounter = 0; loopCounter < Integer.parseInt(msgCount); loopCounter++) {
 
             String genaratedMessage = Utils.generateRandomString();
@@ -53,9 +64,22 @@ public class MessageProducer {
 
                 }
             });
+
+            // see if you are able to pull metrics from the producer
+            // need to  decide which to report for the progress monitor
+            kProducer.metrics().forEach((metricName, metric) -> {
+                MetricName metricName1 = (MetricName) metricName;
+                logger.info("Metric Name is --->" +metricName1.name() );
+
+                Metric metric1 = (Metric) metric;
+                logger.info("Metric is --->" +metric1.metricValue() );
+            });
+
         }
+
         //flush and close
         kProducer.flush();
         kProducer.close();
     }
+
 }

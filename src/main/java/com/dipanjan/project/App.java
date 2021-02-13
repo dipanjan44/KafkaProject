@@ -10,9 +10,9 @@ public class App {
         Scanner sc = new Scanner(System.in);
         System.out.print("Enter number of messages you want to generate ");
         Optional<String> numMessages = Optional.of(sc.nextLine());
-        MessageProducer.produceMessages(numMessages);
-
+        MessageProducer producer = new MessageProducer(numMessages);
+        Thread producerThread = new Thread(producer);
+        producerThread.start();
     }
-
 }
 
