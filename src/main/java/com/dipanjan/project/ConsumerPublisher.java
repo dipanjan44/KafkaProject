@@ -49,7 +49,7 @@ public class ConsumerPublisher implements Runnable {
         properties.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, ProducerConsumerConfig.getEnableAutoCommit());
         properties
                 .setProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, ProducerConsumerConfig.getAutoCommitInterval_MS());
-        properties.setProperty(ConsumerConfig.METRICS_SAMPLE_WINDOW_MS_CONFIG, "30000");
+        properties.setProperty(ConsumerConfig.METRICS_SAMPLE_WINDOW_MS_CONFIG, "5000");
 
 
         return properties;
