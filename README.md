@@ -31,7 +31,7 @@
 
 7. Run the ProducerApp.java once the above app has started
 
-      `ProducerApp.java (Provide the number of messages of your choice. If you dont provide one, hit enter and it will default to 1000)`
+      `ProducerApp.java (Provide the number of messages of your choice. If you dont want to provide, just hit enter and it will default to 1000)`
 
 8. Navigate to `http://localhost:9021/clusters/` to see the topics and metrics
 
