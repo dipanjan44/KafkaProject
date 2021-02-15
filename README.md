@@ -25,7 +25,7 @@
 
       `kafka-console-consumer --bootstrap-server localhost:9092 --topic sms_1000  --max-messages 10000`
 
-6.Run the following classes from your IDE at /Users/dipanjan.haldar/PersonalProjects/src/main/java/com/dipanjan/project:
+6.Run the following classes from your IDE:
 
       `PublisherApp.java (Provide the configurations of your choice. All are mandatory)`
 
