@@ -90,6 +90,10 @@ public class ConsumerPublisher implements Runnable {
                 publisher.send(publisherRecord, new Callback() {
                     @Override
                     public void onCompletion(RecordMetadata recordMetadata, Exception e) {
+
+                        // TODO: Requirement for failure rate needs to be handled here. what needs to be done?
+                        // Not very clear with the requirement
+
                         if (null == e) {
                             logger.info("Publisher record pushed to: " + " Topic: " + recordMetadata.topic() + " to partition: "
                                     + recordMetadata.partition() + "running on thread: " + Thread.currentThread().getName());
@@ -117,7 +121,7 @@ public class ConsumerPublisher implements Runnable {
      */
 
     // this will give metrics per publisher
-    // TODO: need to aggegrate the metrics to get the following:
+    // TODO: need to aggegrate the metrics over all the publishers:
     // best solution would be to use datadog or sumologic
     // currently see the aggregated metrics in the http://localhost:9021/clusters/
     Runnable displayMonitor = new Runnable() {
@@ -126,7 +130,7 @@ public class ConsumerPublisher implements Runnable {
             publisher.metrics().forEach((key, value) -> {
                 MetricName metricName = (MetricName) key;
                 Metric metricValue = (Metric) value;
-
+                //Average number of requests sent per second
                 if (metricName.name().equals("request-rate")) {
                     logger.info("Metric Name is --->" + metricName.name());
                     logger.info("Metric Value is --->" + metricValue.metricValue());

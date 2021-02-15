@@ -74,13 +74,13 @@ public class Producer implements Runnable {
         }
         // see if you are able to pull metrics from the producer
         // need to  decide which to report for the progress monitor
-        kProducer.metrics().forEach((key, value) -> {
-            MetricName metricName = (MetricName) key;
-            logger.info("Producer Metric Name --->" + metricName.name());
-
-            Metric metricValue = (Metric) value;
-            logger.info("Producer Metric Value --->" + metricValue.metricValue());
-        });
+//        kProducer.metrics().forEach((key, value) -> {
+//            MetricName metricName = (MetricName) key;
+//            logger.info("Producer Metric Name --->" + metricName.name());
+//
+//            Metric metricValue = (Metric) value;
+//            logger.info("Producer Metric Value --->" + metricValue.metricValue());
+//        });
         //flush and close
         kProducer.flush();
         kProducer.close();
