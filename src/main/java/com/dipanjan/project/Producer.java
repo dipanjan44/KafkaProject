@@ -42,7 +42,7 @@ public class Producer implements Runnable {
         properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         properties.setProperty(ProducerConfig.ACKS_CONFIG, ProducerConsumerConfig.getWriteAcknowledge());
-        properties.setProperty(ProducerConfig.METRICS_SAMPLE_WINDOW_MS_CONFIG,"5000");
+
         return properties;
     }
 
@@ -63,12 +63,12 @@ public class Producer implements Runnable {
                 @Override
                 public void onCompletion(RecordMetadata recordMetadata, Exception e) {
 
-
-                    logger.info("New Data pushed to " + " Topic" + recordMetadata.topic() + " to partition" + recordMetadata
-                            .partition() + " _msg number" + finalLoopCounter);
-
-
-                    // TODO: handle the exception (maybe push to a error topic)
+                    if (e == null) {
+                        logger.info("New Data pushed to " + " Topic" + recordMetadata.topic() + " to partition" + recordMetadata
+                                .partition() + " _msg number" + finalLoopCounter);
+                    } else {
+                        // TODO: handle the exception (maybe push to a error topic)
+                    }
                 }
             });
         }
