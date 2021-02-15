@@ -18,20 +18,20 @@
 
 4. Open a new terminal and run the following command to create topic for the producer to write to:
 
-  `kafka-topics --zookeeper localhost:2181 --create --topic message_1000 --partitions 3 --replication-factor 1`
+      `kafka-topics --zookeeper localhost:2181 --create --topic message_1000 --partitions 3 --replication-factor 1`
 
 
 5. Open a new terminal and execute the below command to see the messages been published by the publisher:
 
-  `kafka-console-consumer --bootstrap-server localhost:9092 --topic sms_1000  --max-messages 10000`
+      `kafka-console-consumer --bootstrap-server localhost:9092 --topic sms_1000  --max-messages 10000`
 
 6.Run the following classes from your IDE at /Users/dipanjan.haldar/PersonalProjects/src/main/java/com/dipanjan/project:
 
-  `PublisherApp.java (Provide the configurations of your choice. All are mandatory)`
+      `PublisherApp.java (Provide the configurations of your choice. All are mandatory)`
 
 7. Run the ProducerApp.java once the above app has started
 
-  `ProducerApp.java (Provide the number of messages of your choice. If you dont provide one, hit enter and it will default to 1000)`
+      `ProducerApp.java (Provide the number of messages of your choice. If you dont provide one, hit enter and it will default to 1000)`
 
 8. Navigate to `http://localhost:9021/clusters/` to see the topics and metrics
 
