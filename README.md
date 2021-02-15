@@ -6,7 +6,7 @@
 
 **If you have a MacOs, you can do a brew install instead of a manual installation:**  
                               
-    brew install kafka # this will install java 1.8, zookeeper, and kafka  
+    brew install kafka            # this will install java 1.8, zookeeper, and kafka  
 
 **How to run the code:**
 
