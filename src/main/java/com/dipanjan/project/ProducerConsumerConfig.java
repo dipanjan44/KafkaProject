@@ -22,6 +22,12 @@ public class ProducerConsumerConfig {
     //Publisher properties
     private static final String outTopicName = "sms_1000";
 
+    public static String getErrorTopicName() {
+        return errorTopicName;
+    }
+
+    private static final String errorTopicName = "error_topic";
+
     public static String getBootStrapServer() {
         return bootStrapServer;
     }

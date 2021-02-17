@@ -28,11 +28,17 @@ public class ConsumerPublisher implements Runnable {
     private final KafkaProducer publisher;
     private final String configurableMean;
     private final Logger logger = LoggerFactory.getLogger(ConsumerPublisher.class.getName());
+    private final String errorTopicName;
+
+    // introducing it to mimic what happens if there are errors
+    //
+    private Boolean isError = false;
 
 
     public ConsumerPublisher(Integer configurableMean) {
         // new consumer instance with properties
         this.configurableMean = Utils.getConfigurableMean(configurableMean);
+        this.errorTopicName = ProducerConsumerConfig.getErrorTopicName();
         this.consumer = new KafkaConsumer(getConsumerProperties());
         this.publisher = new KafkaProducer(getPublisherProperties());
         consumer.subscribe(Arrays.asList(ProducerConsumerConfig.getTopicName()));
@@ -70,6 +76,7 @@ public class ConsumerPublisher implements Runnable {
         // waiting a random period time for the publisher
         properties.setProperty(ProducerConfig.LINGER_MS_CONFIG, configurableMean);
 
+
         return properties;
     }
 
@@ -85,31 +92,48 @@ public class ConsumerPublisher implements Runnable {
                                 .partition() + " for topic :" + record.topic() + "running on thread: " + Thread.currentThread()
                                 .getName());
 
+
+
                 ProducerRecord publisherRecord =
                         new ProducerRecord(ProducerConsumerConfig.getOutTopicName(), record.key(), record.value());
-                publisher.send(publisherRecord, new Callback() {
-                    @Override
-                    public void onCompletion(RecordMetadata recordMetadata, Exception e) {
 
-                        // TODO: Requirement for failure rate needs to be handled here. what needs to be done?
-                        // Not very clear with the requirement
+                // will put the error condition here
+                // something like this might be an error condition
+                //               if (record.value().length() > 100)
+                //               {
+                //                   isError = true;
+                //               }
+                if (!isError) {
+                    publisher.send(publisherRecord, new Callback() {
+                        @Override
+                        public void onCompletion(RecordMetadata recordMetadata, Exception e) {
 
-                        if (null == e) {
-                            logger.info("Publisher record pushed to: " + " Topic: " + recordMetadata.topic() + " to partition: "
-                                    + recordMetadata.partition() + "running on thread: " + Thread.currentThread().getName());
+                            if (null == e) {
+                                logger.info(
+                                        "Publisher record pushed to: " + " Topic: " + recordMetadata.topic() + " to partition: "
+                                                + recordMetadata.partition() + "running on thread: " + Thread.currentThread()
+                                                .getName());
 
-                        }
-                        else
-                            {
+                            } else {
                                 // TODO: Need to aggregate over these log messages to find the number of messages failed
                                 //       best solution would be to use datadog or sumologic
                                 // currently see the aggregated metrics in the http://localhost:9021/clusters/
-                                logger.info("The message publishing failed for message with key : " + record.key() +
-                                        " and value: " + record.value() + " wriiten to partition: " + recordMetadata.partition()
-                                + "running on thread: " + Thread.currentThread().getName());
+                                logger.info(
+                                        "The message publishing failed for message with key : " + record.key() + " and value: "
+                                                + record.value() + " wriiten to partition: " + recordMetadata.partition()
+                                                + "running on thread: " + Thread.currentThread().getName());
+                                // push all the error messages here so if you want them to resend we can do it
+                                publisher.send(new ProducerRecord(errorTopicName, record.key(), record.value()));
+                            }
                         }
-                    }
-                });
+
+                    });
+                } else {
+
+                    publisher
+                            .send(new ProducerRecord(ProducerConsumerConfig.getErrorTopicName(), record.key(), record.value()));
+
+                }
             }
         }
     }
