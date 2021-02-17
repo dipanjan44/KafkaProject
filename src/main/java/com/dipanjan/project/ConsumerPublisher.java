@@ -129,6 +129,7 @@ public class ConsumerPublisher implements Runnable {
 
                     });
                 } else {
+                    // we handle the retries the error messages if needed
 
                     publisher
                             .send(new ProducerRecord(ProducerConsumerConfig.getErrorTopicName(), record.key(), record.value()));
