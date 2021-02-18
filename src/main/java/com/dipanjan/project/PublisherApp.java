@@ -16,7 +16,9 @@ public class PublisherApp {
         Integer monitorDisplayConfigInterval = sc.nextInt();
         System.out.print("Enter configurable mean for the publisher in seconds ");
         Integer configurableMean = sc.nextInt();
-        PublisherGroup publisherGroup = new PublisherGroup(numberOfPublisher, monitorDisplayConfigInterval, configurableMean);
+        System.out.print("Enter configurable error rate between 0-100 for the publisher ");
+        Integer errorRate = sc.nextInt();
+        PublisherGroup publisherGroup = new PublisherGroup(numberOfPublisher, monitorDisplayConfigInterval, configurableMean,errorRate);
         publisherGroup.executeConsumer();
     }
 }

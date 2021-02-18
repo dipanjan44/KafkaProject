@@ -15,18 +15,20 @@ public class PublisherGroup {
     private final Integer numberOfPublisher;
     private final Integer monitorDisplayConfigInterval;
     private final Integer configurableMean;
+    private final Integer errorRate;
 
-    public PublisherGroup(Integer numberOfPublisher, Integer monitorDisplayConfigInterval, Integer configurableMean) {
+    public PublisherGroup(Integer numberOfPublisher, Integer monitorDisplayConfigInterval, Integer configurableMean, Integer errorRate) {
         this.numberOfPublisher = numberOfPublisher;
         this.monitorDisplayConfigInterval = monitorDisplayConfigInterval;
         this.configurableMean = configurableMean;
+        this.errorRate = errorRate;
 
     }
 
 
     public void executeConsumer() {
         for (int i = 0; i < numberOfPublisher; i++) {
-            ConsumerPublisher publisher = new ConsumerPublisher(configurableMean);
+            ConsumerPublisher publisher = new ConsumerPublisher(configurableMean,errorRate);
             Thread publisherThread = new Thread(publisher);
             publisherThread.start();
             ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);

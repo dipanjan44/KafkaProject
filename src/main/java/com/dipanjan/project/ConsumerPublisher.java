@@ -2,8 +2,9 @@ package com.dipanjan.project;
 
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Properties;
-import java.util.Random;
+
 
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -29,18 +30,16 @@ public class ConsumerPublisher implements Runnable {
     private final String configurableMean;
     private final Logger logger = LoggerFactory.getLogger(ConsumerPublisher.class.getName());
     private final String errorTopicName;
-
-    // introducing it to mimic what happens if there are errors
-    //
-    private Boolean isError = false;
+    private final Integer errorRate;
 
 
-    public ConsumerPublisher(Integer configurableMean) {
+    public ConsumerPublisher(Integer configurableMean, Integer errorRate) {
         // new consumer instance with properties
         this.configurableMean = Utils.getConfigurableMean(configurableMean);
         this.errorTopicName = ProducerConsumerConfig.getErrorTopicName();
         this.consumer = new KafkaConsumer(getConsumerProperties());
         this.publisher = new KafkaProducer(getPublisherProperties());
+        this.errorRate = errorRate;
         consumer.subscribe(Arrays.asList(ProducerConsumerConfig.getTopicName()));
 
     }
@@ -83,27 +82,28 @@ public class ConsumerPublisher implements Runnable {
     @Override
     public void run() {
         while (true) {
+
             ConsumerRecords<String, String> consumerRecords = consumer.poll(Duration.ofSeconds(1));
 
-            for (ConsumerRecord<String, String> record : consumerRecords) {
+            Iterator<ConsumerRecord<String, String>> recordIterator = consumerRecords.iterator();
 
-                logger.info(
-                        "Received msg with key :" + record.key() + " and value : " + record.value() + "in partition:" + record
-                                .partition() + " for topic :" + record.topic() + "running on thread: " + Thread.currentThread()
-                                .getName());
+            logger.info("Number of message produced which can be published ->  " + consumerRecords.count());
+            int recordCount = consumerRecords.count();
 
+            int noOfMessagetoPublish = ((100-errorRate) * recordCount) / 100;
 
+            logger.info("Number of message to be published after applying error rate -> " + noOfMessagetoPublish);
 
-                ProducerRecord publisherRecord =
-                        new ProducerRecord(ProducerConsumerConfig.getOutTopicName(), record.key(), record.value());
+            for (int i = 0; i < noOfMessagetoPublish; i++) {
+                if (recordIterator.hasNext()) {
+                    ConsumerRecord<String, String> record = recordIterator.next();
+                    logger.info("Received msg with key :" + record.key() + " and value : " + record.value() + "in partition:"
+                            + record.partition() + " for topic :" + record.topic() + "running on thread: " + Thread
+                            .currentThread().getName());
 
-                // will put the error condition here
-                // something like this might be an error condition
-                //               if (record.value().length() > 100)
-                //               {
-                //                   isError = true;
-                //               }
-                if (!isError) {
+                    ProducerRecord publisherRecord =
+                            new ProducerRecord(ProducerConsumerConfig.getOutTopicName(), record.key(), record.value());
+
                     publisher.send(publisherRecord, new Callback() {
                         @Override
                         public void onCompletion(RecordMetadata recordMetadata, Exception e) {
@@ -115,30 +115,17 @@ public class ConsumerPublisher implements Runnable {
                                                 .getName());
 
                             } else {
-                                // TODO: Need to aggregate over these log messages to find the number of messages failed
-                                //       best solution would be to use datadog or sumologic
-                                // currently see the aggregated metrics in the http://localhost:9021/clusters/
-                                logger.info(
-                                        "The message publishing failed for message with key : " + record.key() + " and value: "
-                                                + record.value() + " wriiten to partition: " + recordMetadata.partition()
-                                                + "running on thread: " + Thread.currentThread().getName());
-                                // push all the error messages here so if you want them to resend we can do it
-                                publisher.send(new ProducerRecord(errorTopicName, record.key(), record.value()));
+
+                                publisher.send(new ProducerRecord(ProducerConsumerConfig.getErrorTopicName(), record.key(),
+                                        record.value()));
+
                             }
                         }
-
                     });
-                } else {
-                    // we handle the retries the error messages if needed
-
-                    publisher
-                            .send(new ProducerRecord(ProducerConsumerConfig.getErrorTopicName(), record.key(), record.value()));
-
                 }
             }
         }
     }
-
 
     /**
      * Got this idea here : https://stackoverflow.com/questions/12908412/print-hello-world-every-x-seconds
@@ -166,3 +153,4 @@ public class ConsumerPublisher implements Runnable {
     };
 
 }
+
